@@ -4,9 +4,18 @@ var vuz = new Vuz({
     data: {
         name: 'zhuqitao',
         id: '1'
+    },
+    methods: {
+        click: function() {
+            console.log(this)
+            this.name = 'aaa'
+        }
     }
 })
 
-setTimeout(function () {
-    vuz.name = 'tao'
-}, 2000)
+// setTimeout(function () {
+//     vuz.name = 'tao'
+// }, 2000)
+
+
+

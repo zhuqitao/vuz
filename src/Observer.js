@@ -104,7 +104,6 @@ Compile.prototype = {
         while (child) {
             fragment.appendChild(child)
             child = el.firstChild
-            console.log(child)
         }
         return fragment
     },
@@ -139,7 +138,7 @@ Compile.prototype = {
                 // 判断是不是 v- 开头的指令
                 var exp = attr.value
                 var dir = attrName.substring(2)
-                if (this.isEventDirective) {
+                if (this.isEventDirective(dir)) {
                     // 是否 v-on  事件指令
                     this.compileEvent(node, this.vm, exp, dir)
                 } else {
@@ -162,7 +161,8 @@ Compile.prototype = {
     },
 
     // 事件指令 解析
-    compileEvent: function (node, vm, exp, dir) {
+    compileEvent: function (node, vm, exp, dir) {   
+        // alert()
         var eventType = dir.split(":")[1]
         var cb = vm.methods && vm.methods[exp]
 
@@ -208,7 +208,7 @@ Compile.prototype = {
 
     // 判断是否是 事件指令
     isEventDirective: function (dir) {
-        return attr.startsWith('on:')
+        return dir.startsWith('on:')
     },
 
     // 判断是否是 element 标签
@@ -226,8 +226,8 @@ Compile.prototype = {
 // vuz 实例
 function Vuz (options) {
 
-    this.vm = this
     this.data = options.data
+    this.methods = options.methods
 
     Object.keys(this.data).map(key => {
         this.proxyKeys(key)
@@ -236,7 +236,7 @@ function Vuz (options) {
     observe(this.data)
 
 
-    new Compile(options.el, this.vm)
+    new Compile(options.el, this)
 
     return this
 }
