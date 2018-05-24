@@ -133,8 +133,13 @@ Compile.prototype = {
 		attrs.map(attr => {
 			var attrName = attr.name
 			var dir = attrName.slice(2)
+			var exp = attr.value
 			if (this.isDirective(attrName)) {
-				if (this.isEventDirective)
+				if (this.isEventDirective) {
+					this.compileEvent(node, this.vm, exp, dir)
+				} else {
+					this.compileModel(node, this.vm, exp, dir)
+				}
 			}
 		})
 		// Array.prototype.forEach.call(attrs, (attr) => {
@@ -142,8 +147,49 @@ Compile.prototype = {
 		// })
 	},
 
+	// 事件指令 解析
+	compileEvent: function(node, vm, exp, dir) {
+		// alert()
+		var eventType = dir.split(":")[1]
+		var cb = vm.methods && vm.methods[exp]
+
+		if (eventType && cb) {
+			node.addEventListener(eventType, cb.bind(vm), false)
+		}
+	},
+
+	// v-model 解析
+	compileModel: function(node, vm, exp, dir) {
+		var val = this.vm[exp]
+		this.modelUpdater(node, val)
+
+		new Watcher(this.vm, exp, value => {
+			this.modelUpdater(node, value)
+		})
+
+		node.addEventListener('input', e => {
+			var newValue = e.target.value
+			if (val === newValue) {
+				return
+			}
+
+			this.vm[exp] = newValue
+			val = newValue
+		})
+	},
+
 	isElementNode: function(node) {
 		return node.nodeType * 1 === 1
+	},
+
+	// 判断是否是 v- 开头的指令
+	isDirective: function(attr) {
+		return attr.startsWith('v-')
+	},
+
+	// 判断是否是 事件指令
+	isEventDirective: function(dir) {
+		return dir.startsWith('on:')
 	},
 
 	isTextNode: function(node) {
@@ -152,7 +198,11 @@ Compile.prototype = {
 
 	updateText: function(ndoe, value) {
 		node.textContent = value ? value : ''
-	}
+	},
+	// model 双向绑定 数据更新
+	modelUpdater: function(node, value, oldValue) {
+		node.value = value ? value : ''
+	},
 }
 
 function Vuz(option) {
